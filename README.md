@@ -4,9 +4,9 @@ Web control of ROS *turtlesim*
 ## Installation & Requirements
 The installation of ROS Hydro (or newer distro) is required. You will also need to make sure *turtlesim* and *ROSbridge* installed.
 
-Clone this repo to your machine, and open "index.htm" in your browser.
+Clone this repo to your catkin workspace, and run `catkin_make`.
 
-If you have started ROS core, turtlesim and rosbridge, it automatically connects. Otherwise, please follow the step shown on the page.
+Then run `roslaunch turtleweb turtleweb.launch` and go to `http://hostname:8000/turtleweb`.
 
 ## Functionality & Usage
 Currently, the following functions are complete:

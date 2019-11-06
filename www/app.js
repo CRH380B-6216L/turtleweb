@@ -1,7 +1,7 @@
 var app = new Vue({
     el: '#app1',
     data: {
-        address: 'ws://localhost:9090',
+        address: 'ws://' + location.hostname + ':9090',
         state: 'disconnected',
         ros: {},
         rosCompo: {
@@ -211,7 +211,8 @@ var app = new Vue({
         }
     },
     created() {
-        console.log('23333');
+        console.log(location.hostname);
+        console.log(this.address);
         this.connect();
     }
 });

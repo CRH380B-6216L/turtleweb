@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Prototype 0</title>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script src="https://npmcdn.com/vue/dist/vue.js"></script>
+<script type="text/javascript" src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+<script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<style>
+h1, code {
+    font-family: Ubuntu Mono;
+}
+
+#canvas {
+    position: relative;
+    width: 545px;
+    height: 545px;
+    background-color: rgb(69, 86, 255);
+    border: 22.5px solid white;
+}
+
+#canvas canvas{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    width: 500px;
+    height: 500px;
+}
+
+#turtle {
+    position: absolute;
+    margin-left: -22.5px;
+    margin-top: -22.5px;
+    width: 45px;
+    height: 45px;
+}
+</style>
+</head>
+<body>
+<div id="app1">
+    <div class="row">
+        <div class="col-xs-12 col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3">
+            <h1>Prototype 0</h1>
+            <p>CRH380B-6216L &lt;muner_szr6216@outlook.com&gt;</p>
+            <hr>
+            <div v-if="state != 'success'">
+                <p><strong>It seems that you haven't connected to the ROS host running <i>turtlesim</i>.</strong><br>Try to do the following steps:</p>
+                <ol>
+                    <li>Run <code>roscore</code> in the terminal of host</li>
+                    <li>Start <i>turtlesim</i> by entering the following command in a <i>new terminal</i>:<br><code>rosrun turtlesim turtlesim_node</code></li>
+                    <li>Launch <i>rosbridge</i> by entering the following command in a <i>new terminal</i>:<br><code>roslaunch rosbridge_server rosbridge_websocket.launch</code></li>
+                    <li>Enter the address of the host below and click "connect"</li>
+                </ol>
+                <div class="form-inline form-group">
+                    <input class="form-control" style="width: 50%" placeholder="Address of the ROS host" v-model="address"></input>
+                    <button class="btn btn-primary" @click="connect">Connect</button>
+                </div>
+            </div>
+            <div v-else>
+                <div class="form-group">
+                    <label>Where am I</label>
+                    <p><small>XYZVP: {{pose.x}}, {{pose.y}}, {{pose.theta}}, {{pose.linear_velocity}}, {{pose.angular_velocity}}</small></p>
+                    <div id="canvas">
+                        <canvas id="drawing" width="500px" height="500px"></canvas>
+                        <div id="turtle">
+                            <img id="turtleImage" src="./img/groovy.png"></img>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Set speed and direction</label>
+                    <div class="form-inline">
+                        <div class="input-group" style="width:49%">
+                            <span class="input-group-addon" :disabled="alongMoving">Linear</span>
+                            <input type="text" class="form-control" v-model="line" :disabled="alongMoving">
+                        </div>
+                        <div class="input-group" style="width:49%">
+                            <span class="input-group-addon">Angular</span>
+                            <input type="text" class="form-control" v-model="angle" :disabled="alongMoving">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary" @click="moveOnce" :disabled="alongMoving">Go for 1s</button>
+                    <button class="btn btn-info" @click="moveAlong" :disabled="alongMoving">Go along</button>
+                    <button class="btn btn-white text-danger" @click="moveStop" v-show="alongMoving">Stop</button>
+                </div>
+                <div class="form-group">
+                    <label>Set background color</label>
+                    <div class="form-inline">
+                        <div class="input-group" style="width:32%">
+                            <span class="input-group-addon">Red</span>
+                            <input type="text" class="form-control" v-model="backgroundR">
+                        </div>
+                        <div class="input-group" style="width:32%">
+                            <span class="input-group-addon">Green</span>
+                            <input type="text" class="form-control" v-model="backgroundG">
+                        </div>
+                        <div class="input-group" style="width:32%">
+                            <span class="input-group-addon">Blue</span>
+                            <input type="text" class="form-control" v-model="backgroundB">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary" @click="setColor">Set background color</button>
+                </div>
+                <div class="form-group" v-if="!penOff">
+                    <label>Set pen color</label>
+                    <div class="form-inline">
+                        <div class="input-group" style="width:24%">
+                            <span class="input-group-addon">Red</span>
+                            <input type="text" class="form-control" v-model="pen.Red">
+                        </div>
+                        <div class="input-group" style="width:24%">
+                            <span class="input-group-addon">Green</span>
+                            <input type="text" class="form-control" v-model="pen.Green">
+                        </div>
+                        <div class="input-group" style="width:24%">
+                            <span class="input-group-addon">Blue</span>
+                            <input type="text" class="form-control" v-model="pen.Blue">
+                        </div>
+                        <div class="input-group" style="width:24%">
+                            <span class="input-group-addon">Width</span>
+                            <input type="text" class="form-control" v-model="pen.Width">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary" @click="setPen" v-if="!penOff">Set pen color</button>
+                    <button class="btn btn-info" @click="penOnOff" v-if="!penOff">Turn pen off</button>
+                    <button class="btn btn-info" @click="penOnOff" v-if="penOff">Turn pen on</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+function updateColor() {
+    console.log('load canvas');
+    document.getElementById('canvas').style.backgroundColor = 'rgb(' + app.backgroundR + ', ' + app.backgroundG + ', ' + app.backgroundB + ')';
+}
+</script>
+<script src="app.js"></script>
+</html>

@@ -1,4 +1,10 @@
+var router = new VueRouter({
+    mode: 'history',
+    routes: []
+});
+
 var app = new Vue({
+    router,
     el: '#app1',
     data: {
         address: 'ws://' + location.hostname + ':9090',
@@ -45,6 +51,8 @@ var app = new Vue({
     methods: {
         connect() {
             var vm = this;
+            var getPort = vm.$route.query.port;
+            if (getPort) vm.address = 'ws://' + location.hostname + ':' + getPort;
             vm.ros = new ROSLIB.Ros({
                 url: vm.address
             });

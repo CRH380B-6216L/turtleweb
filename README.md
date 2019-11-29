@@ -1,4 +1,4 @@
-# webROSGUI_prototype0
+# turtleweb
 Web control of ROS *turtlesim*
 
 ## Installation & Requirements
@@ -16,6 +16,9 @@ Currently, the following functions are complete:
 - Change background color
 
 You can set the values (linear-velocity and angular-velocity for moving, RGB values for changing background color, RGB values and width for changing pen color and pen switch) and hit the buttons to apply the command. Then the status of *turtlesim* will be shown above synchronously.
+
+## Container usage
+You can build a Docker container image of turtleweb by using `dockerfile`. Currently, you must go into the container and run `roslaunch` manually.
 
 ## Misc
 *[roslibjs](https://github.com/RobotWebTools/roslibjs)* by RobotWebTools is used in this repository.
